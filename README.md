@@ -1,6 +1,6 @@
 # twitter-thread-list
 
-A tool to generate a list to your most popular Twitter threads. [Here’s an example from my data](https://aresluna.org/twitter-threads).
+A tool to generate a list of your most popular Twitter threads. [Here’s an example from my data](https://aresluna.org/twitter-threads).
 
 ## Instructions
 
