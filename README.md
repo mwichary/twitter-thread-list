@@ -4,6 +4,8 @@ A tool to generate a list of your most popular Twitter threads.
 
 [Here’s an example from my data](https://aresluna.org/twitter-threads).
 
+You can use this to allow others access – or just for yourself for reflection or another form of archiving.
+
 ## Instructions
 
 1. [Request your Twitter data](https://twitter.com/settings/your_twitter_data)  (this might take some time – you will get an email whenever that’s ready – so do this first).
