@@ -93,9 +93,6 @@
     margin-left: .2em;
     white-space: nowrap;
   }
-  .threads > li .count:before {
-    content: '+';
-  }
   .threads > li .count:after {
     content: ' tweets';
   }
@@ -184,7 +181,7 @@
       const el = document.createElement('li')
       el.innerHTML = `
         <a target='_blank' href='https://twitter.com/${data.account.username}/status/${tweet.id_str}'>
-          <div class='text'>${processText(tweet.full_text)} <span class='count'>${tweet.thread_length - 1}</span></div>
+          <div class='text'>${processText(tweet.full_text)} <span class='count'>${tweet.thread_length}</span></div>
           <div class='meta'>
             ${formatDateTime(tweet.created_at)} ·
             ${formatNumber(tweet.retweet_count_combined)}&nbsp;retweets ·

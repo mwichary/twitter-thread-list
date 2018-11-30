@@ -1,20 +1,18 @@
-// typescript
-
-let fs = require('fs')
+const fs = require('fs')
 
 const MINIMUM_TWEET_COUNT = 5
 const MAXIMUM_IMAGE_COUNT_PER_THREAD = 12
 
 let originalData = {}
-let tweetLookupTable = {}
+let tweetsById = {}
 let threadTweets = []
 
-////////////////
+// Functions
 
 function generateLookupTable() {
-  for (var i in originalData.tweets) {
+  for (let i in originalData.tweets) {
     const tweet = originalData.tweets[i]
-    tweetLookupTable[tweet.id_str] = tweet
+    tweetsById[tweet.id_str] = tweet
   }
 }
 
@@ -22,16 +20,16 @@ function findUltimateParent(tweet) {
   let currentTweet = tweet
 
   while (currentTweet.in_reply_to_status_id_str && 
-        tweetLookupTable[currentTweet.in_reply_to_status_id_str]) {
-    currentTweet = tweetLookupTable[currentTweet.in_reply_to_status_id_str]
+    tweetsById[currentTweet.in_reply_to_status_id_str]) {
+    currentTweet = tweetsById[currentTweet.in_reply_to_status_id_str]
   }
 
   return currentTweet
 }
 
-////////////
+// Code starts here
 
-console.log('Twitter thread list 1.00')
+console.log('Twitter thread list 1.01')
 console.log('Marcin Wichary, 2018')
 console.log('--------------------')
 
@@ -46,7 +44,9 @@ if (!fs.existsSync(`${directory}account.js`) || !fs.existsSync(`${directory}twee
   console.warn('path to the archive as an argument.')
   process.exit(1)
 }
-//console.warn(directory)
+
+// Process stuff
+
 
 console.log('Reading files…')
 let accountFileContents = fs.readFileSync(`${directory}account.js`, 'utf8')
@@ -62,10 +62,10 @@ originalData = {
 
 generateLookupTable()
 
-for (var i in originalData.tweets) {
+for (let i in originalData.tweets) {
   const tweet = originalData.tweets[i]
 
-  if (tweet.in_reply_to_status_id_str && tweetLookupTable[tweet.in_reply_to_status_id_str]) {
+  if (tweet.in_reply_to_status_id_str && tweetsById[tweet.in_reply_to_status_id_str]) {
     const parentTweet = findUltimateParent(tweet)
 
     // needs to be your tweet
@@ -77,13 +77,15 @@ for (var i in originalData.tweets) {
       }
 
       if (!parentTweet.favorite_count_combined) {
-        parentTweet.favorite_count_combined = parseInt(parentTweet.favorite_count) + parseInt(tweet.favorite_count)
+        parentTweet.favorite_count_combined = 
+            parseInt(parentTweet.favorite_count) + parseInt(tweet.favorite_count)
       } else {
         parentTweet.favorite_count_combined += parseInt(tweet.favorite_count)
       }
 
       if (!parentTweet.retweet_count_combined) {
-        parentTweet.retweet_count_combined = parseInt(parentTweet.retweet_count) + parseInt(tweet.retweet_count)
+        parentTweet.retweet_count_combined = 
+            parseInt(parentTweet.retweet_count) + parseInt(tweet.retweet_count)
       } else {
         parentTweet.retweet_count_combined += parseInt(tweet.retweet_count)
       }
@@ -92,7 +94,7 @@ for (var i in originalData.tweets) {
         parentTweet.images_combined = []
       }
       if (tweet.extended_entities && !tweet.extended_entities_processed) {
-        for (var i = tweet.extended_entities.media.length - 1; i >= 0; i--) {
+        for (let i = tweet.extended_entities.media.length - 1; i >= 0; i--) {
           parentTweet.images_combined.unshift(tweet.extended_entities.media[i].media_url_https)
         }
         tweet.extended_entities_processed = true
@@ -117,16 +119,15 @@ console.log(`…${threadTweets.length} tweets in any threads`)
 console.log(`……${threadTweetsStartingWithSelf.length} tweets starting threads`)
 console.log(`………${threadTweetsAppropriateLength.length} threads of appropriate length`)
 
-for (var i in threadTweetsAppropriateLength) {
+for (let i in threadTweetsAppropriateLength) {
   const tweet = threadTweetsAppropriateLength[i]
 
   if (tweet.extended_entities && !tweet.extended_entities_processed) {
-    for (var i = tweet.extended_entities.media.length - 1; i >= 0; i--) {
+    for (let i = tweet.extended_entities.media.length - 1; i >= 0; i--) {
       tweet.images_combined.unshift(tweet.extended_entities.media[i].media_url_https)
     }
     tweet.extended_entities_processed = true
   }
-
 
   tweet.thread_score = 
       tweet.thread_length * 5.0 + 
@@ -137,6 +138,8 @@ for (var i in threadTweetsAppropriateLength) {
 const threadTweetsSortedByScore = 
     threadTweetsAppropriateLength.sort((a, b) => (a.thread_score < b.thread_score) ? 1 : -1)
 
+// Generate JSON output
+
 const filteredOutput = {
   account: {
     username: originalData.account[0].account.username,
@@ -146,10 +149,10 @@ const filteredOutput = {
   tweets: [],
 }
 
-for (var i in threadTweetsSortedByScore) {
+for (let i in threadTweetsSortedByScore) {
   const tweet = threadTweetsSortedByScore[i]
 
-  let outputTweet = {
+  const outputTweet = {
     'id_str': tweet.id_str,
     'full_text': tweet.full_text,
     'created_at': Date.parse(tweet.created_at),
