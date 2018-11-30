@@ -1,4 +1,5 @@
 const fs = require('fs')
+const Feed = require('feed').Feed
 
 const MINIMUM_TWEET_COUNT = 5
 const MAXIMUM_IMAGE_COUNT_PER_THREAD = 12
@@ -8,6 +9,7 @@ let tweetsById = {}
 let threadTweets = []
 
 // Functions
+// -----------------------------------------
 
 function generateLookupTable() {
   for (let i in originalData.tweets) {
@@ -28,6 +30,7 @@ function findUltimateParent(tweet) {
 }
 
 // Code starts here
+// -----------------------------------------
 
 console.log('Twitter thread list 1.01')
 console.log('Marcin Wichary, 2018')
@@ -46,7 +49,7 @@ if (!fs.existsSync(`${directory}account.js`) || !fs.existsSync(`${directory}twee
 }
 
 // Process stuff
-
+// -----------------------------------------
 
 console.log('Reading files…')
 let accountFileContents = fs.readFileSync(`${directory}account.js`, 'utf8')
@@ -74,6 +77,10 @@ for (let i in originalData.tweets) {
         parentTweet.thread_length++
       } else {
         parentTweet.thread_length = 1
+      }
+
+      if (!parentTweet.last_updated_at || Date.parse(tweet.created_at) > parentTweet.last_updated_at) {
+        parentTweet.last_updated_at = Date.parse(tweet.created_at)
       }
 
       if (!parentTweet.favorite_count_combined) {
@@ -135,10 +142,15 @@ for (let i in threadTweetsAppropriateLength) {
       tweet.favorite_count_combined * 1.0
 }
 
+// concat() is there to make copies instead of sorting in place
 const threadTweetsSortedByScore = 
-    threadTweetsAppropriateLength.sort((a, b) => (a.thread_score < b.thread_score) ? 1 : -1)
+    threadTweetsAppropriateLength.concat().sort((a, b) => (a.thread_score < b.thread_score) ? 1 : -1)
+
+const threadTweetsSortedByLastUpdatedDate = 
+    threadTweetsAppropriateLength.concat().sort((a, b) => (a.last_updated_at < b.last_updated_at) ? 1 : -1)
 
 // Generate JSON output
+// -----------------------------------------
 
 const filteredOutput = {
   account: {
@@ -156,6 +168,7 @@ for (let i in threadTweetsSortedByScore) {
     'id_str': tweet.id_str,
     'full_text': tweet.full_text,
     'created_at': Date.parse(tweet.created_at),
+    'last_updated_at': tweet.last_updated_at,
 
     'images_combined': tweet.images_combined.slice(0, MAXIMUM_IMAGE_COUNT_PER_THREAD),
 
@@ -169,6 +182,32 @@ for (let i in threadTweetsSortedByScore) {
 }
 
 fs.writeFileSync('thread-list.json', 'const data = ' + JSON.stringify(filteredOutput, null, 2), 'utf8')
+
+// Generate RSS (Atom) feed
+// -----------------------------------------
+
+const feed = new Feed({
+  title: `${filteredOutput.account.accountDisplayName}’s Twitter threads`,
+  description: `An automatically-generated list of Twitter threads from @${filteredOutput.account.username}`,
+  generator: 'https://github.com/mwichary/twitter-thread-list',
+})
+
+for (let i in threadTweetsSortedByLastUpdatedDate) {
+  const tweet = threadTweetsSortedByLastUpdatedDate[i]
+
+  feed.addItem({
+    title: tweet.full_text,
+    content: `Thread with ${tweet.thread_length} tweets. ` + 
+    `Created on ${new Date(tweet.created_at).toDateString()}, last updated on ${new Date(tweet.last_updated_at).toDateString()}.`,
+    link: `https://twitter.com/${filteredOutput.account.username}/status/${tweet.id_str}`,
+    date: new Date(tweet.last_updated_at)
+  })
+}
+let feedOutput = feed.atom1()
+fs.writeFileSync('thread-list.rss', feedOutput, 'utf8')
+
+// Fin
+// -----------------------------------------
 
 console.log()
 console.log('Thread list generated! Type `open thread-list.html` (on a Mac) to view it.')

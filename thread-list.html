@@ -2,6 +2,7 @@
 
 <meta charset='utf-8'>
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="alternate" type="application/rss+xml" title="RSS" href="thread-list.rss" />
 <script src='thread-list.json'></script>
 
 <style>
@@ -172,7 +173,8 @@
     document.querySelector('h1').innerHTML = title
     document.querySelector('h2').innerHTML = `
       Last updated: ${formatDateTime(data.account.lastUpdated)} · 
-      <a target='_blank' href='https://twitter.com/${data.account.username}/'>Go to Twitter profile</a>
+      <a target='_blank' href='https://twitter.com/${data.account.username}/'>Go to Twitter profile</a> ·
+      <a target='_blank' href='thread-list.rss'>RSS</a>
     `
 
     for (var i in data.tweets) {
