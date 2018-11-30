@@ -32,5 +32,5 @@ Get the generated `thread-list.json` or `thread-list.rss` and use them in some o
 
 ## Version history
 
-1.01 Add RSS (Atom) support
-1.00 Initial release
+- 1.01 Add RSS (Atom) support
+- 1.00 Initial release
