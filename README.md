@@ -29,3 +29,8 @@ Open `thread-list.html` in your browser.
 **OR**
 
 Get the generated `thread-list.json` or `thread-list.rss` and use them in some other way.
+
+## Version history
+
+1.01 Add RSS (Atom) support
+1.00 Initial release
