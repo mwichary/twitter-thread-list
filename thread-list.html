@@ -195,7 +195,7 @@
       for (var j in tweet.images_combined) {
         const imageEl = document.createElement('div')
         imageEl.classList.add('image')
-        imageEl.style.backgroundImage = `url('${tweet.images_combined[j]}')`
+        imageEl.style.backgroundImage = `url('${tweet.images_combined[j]}:thumb')`
 
         el.querySelector('a').appendChild(imageEl)
       }

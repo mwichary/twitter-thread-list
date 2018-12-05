@@ -32,7 +32,7 @@ function findUltimateParent(tweet) {
 // Code starts here
 // -----------------------------------------
 
-console.log('Twitter thread list 1.01')
+console.log('Twitter thread list 1.02')
 console.log('Marcin Wichary, 2018')
 console.log('--------------------')
 
