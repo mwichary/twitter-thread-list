@@ -32,8 +32,8 @@ function findUltimateParent(tweet) {
 // Code starts here
 // -----------------------------------------
 
-console.log('Twitter thread list 1.02')
-console.log('Marcin Wichary, 2018')
+console.log('Twitter thread list 1.03')
+console.log('Marcin Wichary, 2018–2019')
 console.log('--------------------')
 
 let directory = process.argv[2]
@@ -205,6 +205,11 @@ for (let i in threadTweetsSortedByLastUpdatedDate) {
 }
 let feedOutput = feed.atom1()
 fs.writeFileSync('thread-list.rss', feedOutput, 'utf8')
+
+// Copy .html file
+// -----------------------------------------
+
+fs.copyFile(`${__dirname}/thread-list.html`, './thread-list.html', (err) => {} )
 
 // Fin
 // -----------------------------------------

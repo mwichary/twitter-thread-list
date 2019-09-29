@@ -11,6 +11,8 @@
     line-height: 1.6;
 
     --gray: hsl(0, 0%, 50%);
+    --red: hsl(0, 70%, 50%);
+    --green: hsl(100, 40%, 30%);
     --ui-divider: hsl(210, 40%, 90%);
     --visited-link: hsl(230, 40%, 60%);
 
@@ -98,6 +100,21 @@
     content: ' tweets';
   }
 
+  .threads > li .new {
+    color: var(--red);
+    border: 1px solid var(--red);
+    padding: .2em .4em;
+    margin-left: .2em;
+    font-weight: 500;
+  }
+  .threads > li .updated {
+    color: var(--green);
+    border: 1px solid var(--green);
+    padding: .2em .4em;
+    margin-left: .2em;
+    font-weight: 500;
+  }
+
   .threads > li > a:visited {
     color: var(--visited-link);
   }
@@ -125,7 +142,7 @@
 
   .meta {
     font-size: 80%;
-    margin-top: .4em;
+    margin-top: 1em;
     color: var(--gray);
   }
 
@@ -158,8 +175,47 @@
     return text
   }
 
-  function formatDateTime(time) {
-    return new Date(time).toDateString()
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+
+  function formatDate(time) {
+    let date = new Date(time)
+    let string = `${date.getDate()} ${MONTHS[date.getMonth()]} ${date.getFullYear()}`
+
+    return string
+  }
+
+  function formatDateRange(timeFrom, timeTo) {
+    const dateFrom = new Date(timeFrom)
+    const dateTo = new Date(timeTo)
+
+    let string
+    if (dateFrom.getDate() == dateTo.getDate() && dateFrom.getMonth() == dateTo.getMonth() && dateFrom.getFullYear() == dateTo.getFullYear()) {
+      string = formatDate(dateFrom)
+    } else if (dateFrom.getMonth() == dateTo.getMonth() && dateFrom.getFullYear() == dateTo.getFullYear()) {
+      string = `${dateFrom.getDate()}–${dateTo.getDate()} ${MONTHS[dateFrom.getMonth()]} ${dateFrom.getFullYear()}`
+    } else if (dateFrom.getMonth() != dateTo.getMonth() && dateFrom.getFullYear() == dateTo.getFullYear()) {
+      string = `${dateFrom.getDate()} ${MONTHS[dateFrom.getMonth()]}–${dateTo.getDate()} ${MONTHS[dateTo.getMonth()]} ${dateFrom.getFullYear()}`
+    } else {
+      string = `${dateFrom.getDate()} ${MONTHS[dateFrom.getMonth()]} ${dateFrom.getFullYear()}–${dateTo.getDate()} ${MONTHS[dateTo.getMonth()]} ${dateTo.getFullYear()}`
+    }
+
+    return string
+  }
+
+  function isNew(time) {
+    return (new Date() - time) < 30 * 24 * 60 * 60 * 1000
+  }
+
+  function isBeingUpdated(timeFrom, timeTo) {
+    const dateFrom = new Date(timeFrom)
+    const dateTo = new Date(timeTo)
+
+    const longerThanHalfAYear = (dateTo - dateFrom) > 6 * 30 * 24 * 60 * 60 * 1000
+    if (longerThanHalfAYear) {
+      return (new Date() - dateTo) < 30 * 24 * 60 * 60 * 1000
+    } else {
+      return (new Date() - dateTo) < 7 * 24 * 60 * 60 * 1000
+    }
   }
 
   function formatNumber(number) {
@@ -167,12 +223,12 @@
   }
 
   function main() {
-    let title = `${data.account.accountDisplayName}’s Twitter threads`
+    const title = `${data.account.accountDisplayName}’s Twitter threads`
 
     document.title = title
     document.querySelector('h1').innerHTML = title
     document.querySelector('h2').innerHTML = `
-      Last updated: ${formatDateTime(data.account.lastUpdated)} · 
+      Last updated: ${formatDate(data.account.lastUpdated)} · 
       <a target='_blank' href='https://twitter.com/${data.account.username}/'>Go to Twitter profile</a> ·
       <a target='_blank' href='thread-list.rss'>RSS</a>
     `
@@ -183,11 +239,11 @@
       const el = document.createElement('li')
       el.innerHTML = `
         <a target='_blank' href='https://twitter.com/${data.account.username}/status/${tweet.id_str}'>
-          <div class='text'>${processText(tweet.full_text)} <span class='count'>${tweet.thread_length}</span></div>
-          <div class='meta'>
-            ${formatDateTime(tweet.created_at)} ·
-            ${formatNumber(tweet.retweet_count_combined)}&nbsp;retweets ·
-            ${formatNumber(tweet.favorite_count_combined)}&nbsp;favourites
+          <div class='text'>
+            ${processText(tweet.full_text)} 
+            <span class='count'>${tweet.thread_length}</span>
+            ${isNew(tweet.created_at) ? '<span class="new">New!</span>' : ''}
+            ${(isBeingUpdated(tweet.created_at, tweet.last_updated_at) && !isNew(tweet.created_at)) ? '<span class="updated">Still going!</span>' : ''}
           </div>
         </a>
       `
@@ -199,6 +255,14 @@
 
         el.querySelector('a').appendChild(imageEl)
       }
+
+      el.innerHTML += `
+        <div class='meta'>
+          ${formatDateRange(tweet.created_at, tweet.last_updated_at)} ·
+          ${formatNumber(tweet.retweet_count_combined)}&nbsp;retweets ·
+          ${formatNumber(tweet.favorite_count_combined)}&nbsp;favourites
+        </div>
+      `
 
       document.querySelector('.threads').appendChild(el)
     }
