@@ -32,6 +32,7 @@ Get the generated `thread-list.json` or `thread-list.rss` and use them in some o
 
 ## Version history
 
+- 1.03 Better date ranges, showing new and ongoing threads, copy HTML file properly
 - 1.02 Use smaller images for better performance
 - 1.01 Add RSS (Atom) support
 - 1.00 Initial release
